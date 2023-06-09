@@ -5,31 +5,26 @@ name: Run stock check
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/15 * * * *'
+  #schedule:
+  #  - cron: '*/15 * * * *'
 
 jobs:
-  display-variables:
-    name: ${{ vars.JOB_NAME }}
-    # You can use configuration variables with the `vars` context for dynamic jobs
-    if: ${{ vars.USE_VARIABLES == 'true' }}
-    runs-on: ${{ vars.RUNNER }}
-    environment: ${{ vars.ENVIRONMENT_STAGE }}
-    steps:
-    - name: Use variables
-      run: |
-        echo "repository variable : $REPOSITORY_VAR"
-      env:
-        REPOSITORY_VAR: ${{ vars.TWILIO_ACCOUNT_SID }}
-
   build:
     runs-on: ubuntu-latest
+    
+    env:
+      TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN: ${{ vars.TWILIO_AUTH_TOKEN }}
+      MY_SMS: ${{ vars.MY_SMS }}
+      TWILIO_SMS: ${{ vars.TWILIO_SMS }}
 
     strategy:
       matrix:
         node-version: [20.x]
 
     steps:
+      - name: Print account name
+        run: echo "repository variable $REPOSITORY_VAR"
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -37,8 +32,3 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm start
-        env:
-          TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ vars.TWILIO_AUTH_TOKEN }}
-          MY_SMS: ${{ vars.MY_SMS }}
-          TWILIO_SMS: ${{ vars.TWILIO_SMS }}
