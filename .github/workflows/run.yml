@@ -3,10 +3,16 @@
 
 name: Run stock check
 
+env:
+  TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
+  TWILIO_AUTH_TOKEN: ${{ vars.TWILIO_AUTH_TOKEN }}
+  MY_SMS: ${{ vars.MY_SMS }}
+  TWILIO_SMS: ${{ vars.TWILIO_SMS }}
+
 on:
   workflow_dispatch:
-  # schedule:
-  #  - cron: '*/15 * * * *'
+  schedule:
+    - cron: '*/15 * * * *'
 
 jobs:
   build:
