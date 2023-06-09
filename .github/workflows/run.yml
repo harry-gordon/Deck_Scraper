@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
-      TWILIO_AUTH_TOKEN: ${{ vars.TWILIO_AUTH_TOKEN }}
-      MY_SMS: ${{ vars.MY_SMS }}
-      TWILIO_SMS: ${{ vars.TWILIO_SMS }}
+      TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+      MY_SMS: ${{ secrets.MY_SMS }}
+      TWILIO_SMS: ${{ secrets.TWILIO_SMS }}
 
     strategy:
       matrix:
@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Print account name
-        run: echo "repository variable $TWILIO_ACCOUNT_SID"
+        run: echo "Twilio account $TWILIO_ACCOUNT_SID"
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
