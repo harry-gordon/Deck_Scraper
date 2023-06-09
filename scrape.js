@@ -22,15 +22,12 @@ const product = {
 	link: '',
 };
 
-//Set interval
-const handle = setInterval(scrape, 300000);
-
 /*
 This function scrapes the Steam website for the stock info of each Steam Deck size.
 It fetches all the stock data before calling the SMS function if it's in stock.
 */
 async function scrape() {
-	//Fetch all the html data with Puppeteer
+	// Fetch all the html data with Puppeteer
 	const browser = await puppeteer.launch({
 		headless: 'new',
 	});
@@ -39,11 +36,11 @@ async function scrape() {
 	const html = await page.content();
 	await browser.close();
 
-	//Load the html with Cheerio so we can use it
+	// Load the html with Cheerio so we can use it
 	const $ = cheerio.load(html);
 
-	//Narrow down the html to smaller sections (containers)
-	//Fetch each div box containing a Steam Deck size
+	// Narrow down the html to smaller sections (containers)
+	// Fetch each div box containing a Steam Deck size
 	const container64 = $(
 		'div.reservations_reservation_ctn_15uTq.reservation_ctn'
 	).get(0);
@@ -61,7 +58,7 @@ async function scrape() {
 	in the product object.
 	*/
 	function fetchData(value) {
-		//Fetch the size
+		// Fetch the size
 		const size = $(value)
 			.find(
 				'div.bbcodes_Header2_2ZqUv.BB_Header2.eventbbcodeparser_Header2_1SWg2'
@@ -74,14 +71,14 @@ async function scrape() {
 			)
 			.text();
 
-		//Handling a 'Buy Now!' button
+		// Handling a 'Buy Now!' button
 		if (stock == '') {
 			stock = $(value)
 				.find('button.DialogButton._DialogLayout.Secondary.Focusable')
 				.text();
 		}
 
-		//Assign values to product object
+		// Assign values to product object
 		if (size == '64GB') {
 			product.size64 = size;
 			product.stock64 = stock;
@@ -98,11 +95,10 @@ async function scrape() {
 
 	containers.forEach(fetchData);
 
-	//If it's in stock, send SMS
-	if (product.size64 == '64GB' && product.stock64 != 'Out of stock') {
-		SMS();
+	// If it's in stock, send SMS
+	if (product.size256 == '256GB' && product.stock256 != 'Out of stock') {
+		sendInStockMessage();
 	} else {
-		//console.log(product);
 		console.log(
 			'Current stock:\n' +
 				product.size64 +
@@ -124,18 +120,42 @@ async function scrape() {
 /*
 This function sends an SMS via Twillio
 */
-function SMS() {
-	client.messages
+function sendInStockMessage() {
+	var message =  ` \n\nHOLY MOTHER IT'S IN STOCK\n\n${product.size64} - ${product.stock64}\n${product.link}`;
+	sendMessage(message).then(() => {
+		console.log(product);
+		clearInterval(interval);
+	});
+}
+
+function sendMessage(body) {
+	return client.messages
 		.create({
-			body: ` \n\nHOLY MOTHER IT'S IN STOCK\n\n${product.size64} - ${product.stock64}\n${product.link}`,
+			body: body,
 			from: twilioSMS,
 			to: mySMS,
 		})
 		.then((message) => {
-			console.log(product);
 			console.log(message);
-			clearInterval(handle);
 		});
 }
 
-scrape();
+var interval = null;
+
+function init(once) {
+	// Initial scrape
+	scrape();
+
+	if (once) {
+		// Repeat the scrape every 5 min
+		interval = setInterval(scrape, 300000);
+		
+		sendMessage("Steam Deck stock check started ✨").then(() => {
+			console.log("Sent start up text");
+		});
+	}
+}
+
+init(true);
+
+
